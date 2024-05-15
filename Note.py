@@ -12,7 +12,7 @@ class Note:
     MIN_START = parameters.MIN_START #in samples
     MAX_VELOCITY = parameters.MAX_VELOCITY
     def __init__(self,noteName=None,startTime=None,duration=None,velocity=None):
-        if(all(x==None for x in [noteName,startTime,duration,velocity])):
+        if(all(x==None for x in [noteName,startTime,duration,velocity])): #default constructor
             self.set_rand_param()
             return
         else:
@@ -20,9 +20,10 @@ class Note:
                 self.noteName = noteName
             else:
                 raise Exception("invalid noteName, choose between E2 and E5")
-            self.startTime = startTime #in samples, int
-            self.duration = duration #in samples, int
-            self.velocity = velocity #int from 0 to 128
+            #TODO:Implement Checks on min/max range
+            self.startTime = int(startTime) #in samples, int
+            self.duration = int(duration) #in samples, int
+            self.velocity = int(velocity) #int from 0 to 128
 
     #RANDOM NOTE GENERATION (UNIFORM DISTRIBUTION)
     def set_rand_param(self):

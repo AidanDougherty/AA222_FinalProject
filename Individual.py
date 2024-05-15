@@ -5,7 +5,7 @@ class Individual:
         self.genome = genome
         self.eval = -1
     
-    def evaluate_self(self):
+    def evaluate_self(self,song):
         if(not self.eval==-1):
             #IMPLEMENT EVALUATION
             pass

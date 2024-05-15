@@ -16,15 +16,18 @@ class Genome:
         #implement max number of notes?
         self.noteList = sorted_noteList #list of notes, sorted by start time
     
+    def __add__(self,other):
+        return Genome(self.noteList + other.noteList)
+    
+    #return 2 children with crossed genomes
     def crossover(self,partner):
-        #TODO: IMPLEMENT POINT CUT RECOMBINATION, RETURN 2 NEW GENOMES
         if (random.random()>=parameters.CROSSOVER_PROBABILITY): #25% chance of no crossover, children are identical to parents
-            return [copy.copy(self), copy.copy(partner)]
+            return (copy.copy(self), copy.copy(partner))
         #otherwise do crossover
         cross_time = int(random.random()*parameters.MAX_SAMPLES)
         self_genomes = self.split_genome(cross_time)
         partner_genomes = partner.split_genome(cross_time)
-        return [Genome.Genome([self_genomes[0]+partner_genomes[1]]), Genome.Genome([self_genomes[1]+partner_genomes[0]])]
+        return (self_genomes[0]+partner_genomes[1], self_genomes[1]+partner_genomes[0])
 
     #Split one genome into 2 at crosstime, returns two genomes
     def split_genome(self,cross_time):
@@ -47,7 +50,7 @@ class Genome:
                 notelist_A.append(n_A)
                 n_B = Note.Note(n.noteName,cross_time,n.startTime+n.duration-cross_time,n.velocity)
                 notelist_B.append(n_B)
-        return [Genome.Genome(notelist_A), Genome.Genome(notelist_B)]
+        return [Genome(notelist_A), Genome(notelist_B)]
 
     #return int16 array of samples at 44.1kHz using .wav files in Notes
     def synthesize(self):
@@ -59,4 +62,13 @@ class Genome:
             song[n.startTime:n.startTime+n.duration]+=note_data
         #add rescaling? -> normalize frames in eval
         return song.astype(np.int16)
+    
+    def print_notes(self):
+        notes = [n.noteName for n in self.noteList]
+        print(f"Notes: {notes}")
+        startTimes = [round(n.startTime/parameters.SAMPLE_RATE,3) for n in self.noteList]
+        print(f"Start Times (s): {startTimes}")
+        durations = [round(n.duration/parameters.SAMPLE_RATE,3) for n in self.noteList]
+        print(f"Durations: {durations}")
+        pass
         
