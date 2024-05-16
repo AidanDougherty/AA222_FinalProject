@@ -4,6 +4,7 @@ import parameters
 import copy
 from scipy.io import wavfile
 import numpy as np
+import scipy.signal as sig
 class Genome:
     readpath = 'c:/Users/dough/OneDrive/Documents/AA222_FinalProject/Notes/'
     #TODO: IMPLEMENT RANDOM NOTE SEQUENCE GENERATION (UNIFORM)? -> initial population from note estimation on song, not random
@@ -21,9 +22,6 @@ class Genome:
     
     #return 2 children with crossed genomes
     def crossover(self,partner):
-        if (random.random()>=parameters.CROSSOVER_PROBABILITY): #25% chance of no crossover, children are identical to parents
-            return (copy.copy(self), copy.copy(partner))
-        #otherwise do crossover
         cross_time = int(random.random()*parameters.MAX_SAMPLES)
         self_genomes = self.split_genome(cross_time)
         partner_genomes = partner.split_genome(cross_time)
@@ -52,13 +50,58 @@ class Genome:
                 notelist_B.append(n_B)
         return [Genome(notelist_A), Genome(notelist_B)]
 
+    def mutate(self):
+        new_noteList = []
+        for n in self.noteList:
+            if(random.random()<=parameters.MUTATION_PROBABILITY): #each note has 10% chance to mutate
+                p = random.randint(1,7)
+                if p==1: #Note frequency change, +/- octave or half step
+                    q = random.random()
+                    if(q<0.25):
+                        n.shift_octave(directionIsUp=True)
+                    elif(q<0.5):
+                        n.shift_octave(directionIsUp=False)
+                    elif(q<0.75):
+                        n.shift_semitone(directionIsUp=True)
+                    else:
+                        n.shift_semitone(directionIsUp=False)
+                    new_noteList.append(n)
+                elif p==2: #shift start time
+                    startShift = int((2*random.random()-1)*parameters.MAX_START_SHIFT*parameters.SAMPLE_RATE)
+                    n.shift_start(startShift)
+                    new_noteList.append(n)
+                elif p==3: #change duration 50% to 150%
+                    prop = random.random() + 0.5
+                    n.change_duration(prop)
+                    if(not n.duration==parameters.MIN_DURATION): #if note becomes too small, delete
+                        new_noteList.append(n)
+                elif p==4:  #change velocity within +/- 16
+                    velShift = int((2*random.random()-1)*parameters.MAX_VELOCITY_SHIFT)
+                    n.shift_velocity(velShift)
+                    if(not n.velocity == 0): #if note becomes too quiet, delete
+                        new_noteList.append(n)
+                elif p==5: #even split with silence equal to half note duration
+                    new_noteList.append(n)
+                    pass
+                elif p==6: #remove note
+                    pass
+                elif p==7: #add new note - random or duplicate
+                    new_noteList.append(n)
+                    pass
+
     #return int16 array of samples at 44.1kHz using .wav files in Notes
     def synthesize(self):
         song = np.zeros(parameters.MAX_SAMPLES+1)
+        
         for n in self.noteList:
             samplerate, data = wavfile.read(Genome.readpath+n.noteName+'.wav') #velocity = 64
-            note_data = data[:n.duration] #set duration, maybe add tapering
+            note_data = data[:n.duration] #set duration
+            taper_prop = 0.1
+            taper_width = int(np.floor(taper_prop*(n.duration)))
+            w = np.arange(n.duration-taper_width,n.duration)
+            w = 0.5 * (1 + np.cos(np.pi * (-2.0/taper_prop + 1 + 2.0*w/taper_prop/(n.duration)))) #tapered cosine 
             note_data = (note_data*(n.velocity/(parameters.MAX_VELOCITY/2))) #set velocity, add averaging?
+            note_data[-len(w):]=np.multiply(note_data[-len(w):],w) #taper ending
             song[n.startTime:n.startTime+n.duration]+=note_data
         #add rescaling? -> normalize frames in eval
         return song.astype(np.int16)

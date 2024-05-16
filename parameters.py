@@ -12,3 +12,6 @@ MIN_START = 0 #in samples
 MAX_VELOCITY = 128 #0 to 128
 
 CROSSOVER_PROBABILITY = 0.75
+MUTATION_PROBABILITY = 0.1
+MAX_START_SHIFT = 0.5 #in seconds, for note mutation
+MAX_VELOCITY_SHIFT = 16 #for note mutation
