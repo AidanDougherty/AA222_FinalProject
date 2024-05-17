@@ -22,7 +22,10 @@ class Individual:
             #Bin frames by note frequency
             #compare to binned values in target -> fitness
             note_amps = utilities.eval_note_amplitudes(Sxx)
-            self.fitness = np.sum(abs(target_note_amps-note_amps))
+            target_peak_ind = np.argmax(target_note_amps,axis=0)
+            note_peak_ind = np.argmax(note_amps,axis=0)
+            self.fitness = np.sum(np.abs(target_note_amps-note_amps)) + 1e7*np.mean(np.abs(target_peak_ind-note_peak_ind))
+            #self.fitness = np.sum(np.abs(target_note_amps-Sxx))
             return self.fitness
         else:
             return self.fitness

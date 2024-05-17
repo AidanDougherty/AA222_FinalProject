@@ -68,7 +68,7 @@ def draw_midi(gen):
         xpos = [xleft,xleft,xright,xright]
         rgb = m.to_rgba(n.velocity)[:3]
         ax.fill(xpos,ypos,mpl.colors.rgb2hex(rgb))
-    plt.show()
+    
 
 def process_wav(readpath):
     samplerate, data = wavfile.read(readpath)

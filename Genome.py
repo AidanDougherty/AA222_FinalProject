@@ -81,8 +81,8 @@ class Genome:
                     startShift = int((2*random.random()-1)*parameters.MAX_START_SHIFT*parameters.SAMPLE_RATE)
                     n.shift_start(startShift)
                     new_noteList.append(n)
-                elif p==3: #change duration 50% to 150%
-                    prop = random.random() + 0.5
+                elif p==3: #change duration 50% to 200%, evenly weight pdf to 50% grow or shrink?
+                    prop = 1.5*random.random() + 0.5
                     n.change_duration(prop)
                     if(not n.duration<=parameters.MIN_DURATION): #if note becomes too small, delete
                         new_noteList.append(n)

@@ -11,7 +11,7 @@ note_freqs = [82.41,87.31,92.5,98.0,103.8,110.0,116.5,123.5,130.8,138.6,146.8,15
 SAMPLE_RATE = 44100 #kHz
 MAX_SONG_TIME = 10 #Seconds in song
 MAX_NOTE_TIME = 4 #max seconds for one note
-MIN_NOTE_TIME = 0.02 #min seconds for one note
+MIN_NOTE_TIME = 0.1 #min seconds for one note
 MAX_SAMPLES = int(SAMPLE_RATE*MAX_SONG_TIME) #total samples in song
 MAX_DURATION = int(SAMPLE_RATE*MAX_NOTE_TIME) #max samples for one note
 MIN_DURATION = int(SAMPLE_RATE*MIN_NOTE_TIME) #min samples for one note
@@ -33,10 +33,10 @@ MAX_NUMBER_NOTES = 30
 DOWNSAMPLE_FACTOR = 10
 DOWNSAMPLE_FS = int(SAMPLE_RATE/DOWNSAMPLE_FACTOR)
 
-FRAME_SAMPLES = 1024 #after downsampling by 10
+FRAME_SAMPLES = 512 #after downsampling by 10
 FRAME_OVERLAP = 0.5
 NUM_FRAMES = int((MAX_SAMPLES/DOWNSAMPLE_FACTOR)/(FRAME_SAMPLES*(1-FRAME_OVERLAP))) - 1
-NFFT = 4*FRAME_SAMPLES
+NFFT = 8*FRAME_SAMPLES
 FREQ_AXIS = np.linspace(0,DOWNSAMPLE_FS/2,int(NFFT/2)) #real freq axis of NFFT point FFT of downsampled frame
 NOTE_INDICES = np.array([[np.where(FREQ_AXIS==f)[0] for f in nsmallest(3, FREQ_AXIS, key=lambda x: abs(x - nf))] for nf in note_freqs]).reshape(37,3).T
 #^3x37 array of 3 closest indices in FREQ_AXIS to each note
@@ -52,5 +52,5 @@ NUM_CHILDREN = 100
 NUM_PARENTS = 90
 NUM_MUTATE_BEST = NUM_CHILDREN - NUM_PARENTS #proportion of population that is created from mutating best individual
 ELITE_SIZE = 200
-NUM_GENERATIONS = 100
+NUM_GENERATIONS = 200
 TOURNAMENT_SIZE = 5

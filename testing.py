@@ -8,6 +8,7 @@ import random
 import copy
 import parameters
 import matplotlib.pyplot as plt
+import pickle
 
 #Test Synthesize
 '''
@@ -63,10 +64,11 @@ plt.show()
 '''
 
 # plot Midi TTLS
-'''
+
 ttls = utilities.make_ttls()
 utilities.draw_midi(ttls)
-'''
+plt.title("Ground Truth Melody")
+plt.show()
 
 #Spectrograms
 '''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
@@ -100,16 +102,19 @@ plt.ylabel('Frequency [Hz]')
 plt.show()'''
 
 #Calc Note Amplitudes + Test Fitness function
-readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+'''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
 song = utilities.process_wav(readpath)
 song = utilities.downsample(song)
 (f,t,Sxx) = utilities.calc_spectrogram(song)
 print(Sxx.shape)
 Sxx = utilities.normalize_frames(Sxx)
 target_amps = utilities.eval_note_amplitudes(Sxx)
+ax = plt.pcolormesh(t, np.arange(1,38), target_amps, shading='gouraud')
+plt.show()
+#target_amps = Sxx
 #ax = plt.pcolormesh(t, np.arange(1,38), amps, shading='gouraud')
 #plt.show()
-
+#print(target_amps)
 ttls_gen = utilities.make_ttls()
 Iperf = Individual.Individual(genome=ttls_gen)
 cmaj_gen = utilities.make_Cmaj_up()
@@ -121,4 +126,15 @@ print(f"Ideal Score: {Iperf.evaluate_self(target_amps)}")
 print(f"CMajor Score: {Icmaj.evaluate_self(target_amps)}")
 print(f"Random Score: {Irand.evaluate_self(target_amps)}")
 print(f"Silent Score: {Irest.evaluate_self(target_amps)}")
-#utilities.draw_midi(Irand.genome)
+#utilities.draw_midi(Irand.genome)'''
+
+#plotting ga test data
+'''with open('FFT_noNorm_200gen_freqpen.pkl','rb') as f:  # Python 3: open(..., 'rb')
+    obj0, obj1 = pickle.load(f)
+
+plt.plot(obj1)
+plt.xlabel("Generation")
+plt.ylabel("Fitness")
+
+plt.title("Fitness vs Generation, No Normalization, FFT and Freq Penalty Based")
+plt.show()'''

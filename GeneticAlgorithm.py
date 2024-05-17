@@ -8,8 +8,9 @@ def run_ga(readpath): #path to 44.1kHz, 10s song
     song = utilities.process_wav(readpath)
     song = utilities.downsample(song)
     (f,t,Sxx) = utilities.calc_spectrogram(song)
-    if(parameters.NORMALIZATION_OPT):
-        Sxx = utilities.normalize_frames(Sxx)
+    #if(parameters.NORMALIZATION_OPT):
+        #Sxx = utilities.normalize_frames(Sxx)
+    Sxx = utilities.normalize_frames(Sxx)
     target_note_amps = utilities.eval_note_amplitudes(Sxx) #spectrogram of note amplitudes
 
     #Make Random Initial Population
@@ -44,7 +45,8 @@ def run_ga(readpath): #path to 44.1kHz, 10s song
     
     population = sorted(population, key=lambda x: x.evaluate_self(target_note_amps), reverse=False)[:parameters.POP_SIZE]
     gen_fitness = np.trim_zeros(gen_fitness)
-    return (population[0],gen_fitness)
+    best_fitness = population[0].evaluate_self(target_note_amps)
+    return (population,gen_fitness,best_fitness)
 
 def calc_average_fitness(pop,target_note_amps):
     total = 0
