@@ -41,9 +41,9 @@ class Note:
         i = Note.notes.index(self.noteName)
         L = len(Note.notes)
         if(directionIsUp):
-            self.noteName = Note.notes[(i+13)%L]
+            self.noteName = Note.notes[(i+12)%L]
         else:
-            self.noteName = Note.notes[(i-13)%L]
+            self.noteName = Note.notes[(i-12)%L]
     
     def shift_semitone(self,directionIsUp):
         i = Note.notes.index(self.noteName)

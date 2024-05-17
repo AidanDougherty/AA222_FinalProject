@@ -7,15 +7,21 @@ import numpy as np
 import scipy.signal as sig
 class Genome:
     readpath = 'c:/Users/dough/OneDrive/Documents/AA222_FinalProject/Notes/'
-    #TODO: IMPLEMENT RANDOM NOTE SEQUENCE GENERATION (UNIFORM)? -> initial population from note estimation on song, not random
-    def __init__(self,noteList):
-        if any(not isinstance(x, Note.Note) for x in noteList):
+    def __init__(self,noteList=None):
+        if(noteList==None): #uniform random generation of notes, number of notes specified by parameters
+            noteList = []
+            num_notes = int((parameters.MAX_NUMBER_NOTES - parameters.MIN_NUMBER_NOTES)*random.random())+parameters.MIN_NUMBER_NOTES
+            for i in range(0,num_notes):
+                noteList.append(Note.Note())
+            self.noteList = noteList
+            self.sort() #sort by start time
+        elif any(not isinstance(x, Note.Note) for x in noteList):
             print("ERROR: noteList must contain only objects of type NOTE")
             return
         else:
-            sorted_noteList = sorted(noteList, key=lambda x: x.startTime, reverse=False) #sort by start time
-        #implement max number of notes?
-        self.noteList = sorted_noteList #list of notes, sorted by start time
+            self.noteList = noteList #list of notes
+            self.sort() #sort by start time
+            #implement max number of notes?
     
     def __add__(self,other):
         return Genome(self.noteList + other.noteList)
@@ -55,6 +61,7 @@ class Genome:
         for n in self.noteList:
             if(random.random()<=parameters.MUTATION_PROBABILITY): #each note has 10% chance to mutate
                 p = random.randint(1,7)
+                #print(p)
                 if p==1: #Note frequency change, +/- octave or half step
                     q = random.random()
                     if(q<0.25):
@@ -81,14 +88,31 @@ class Genome:
                     if(not n.velocity == 0): #if note becomes too quiet, delete
                         new_noteList.append(n)
                 elif p==5: #even split with silence equal to half note duration
+                    d = n.duration
+                    n.change_duration(0.5)
+                    n_copy = copy.copy(n) #split note in two
+                    n_copy.shift_start(d)
                     new_noteList.append(n)
-                    pass
+                    new_noteList.append(n_copy)
                 elif p==6: #remove note
-                    pass
+                    pass #simply don't add to new notelist
                 elif p==7: #add new note - random or duplicate
                     new_noteList.append(n)
+                    if(random.random()<0.5):
+                        n1 = copy.copy(n)
+                    else:
+                        n1 = Note.Note()
+                    new_noteList.append(n1)
                     pass
+            else:
+                new_noteList.append(n)
+        self.noteList = new_noteList
+        self.sort() #sort self for convenience
+        
 
+    def sort(self):
+        self.noteList = sorted(self.noteList, key=lambda x: x.startTime, reverse=False)
+    
     #return int16 array of samples at 44.1kHz using .wav files in Notes
     def synthesize(self):
         song = np.zeros(parameters.MAX_SAMPLES+1)
