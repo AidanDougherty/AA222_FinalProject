@@ -54,10 +54,28 @@ class Note:
         else:
             self.noteName = Note.notes[(i-1)%L]
 
+    def set_duration_and_startTime(self,new_dur,new_start,changingDur):
+        if(new_dur<Note.MIN_DURATION):
+            new_dur = Note.MIN_DURATION
+        elif(new_dur>Note.MAX_DURATION):
+            new_dur = Note.MAX_DURATION
+        if(new_start<Note.MIN_START):
+            new_start = Note.MIN_START
+        elif(new_start>Note.MAX_START):
+            new_start = Note.MAX_START
+        if(new_start+new_dur>Note.MAX_SAMPLES):
+            if(changingDur): #changing duration
+                new_dur = Note.MAX_SAMPLES-new_start
+            else: #changing start
+                new_start = Note.MAX_SAMPLES-new_dur
+        self.duration = new_dur
+        self.startTime = new_start
+
     #0.5<proportion<1.5, float, scales duration 50-150%
     def change_duration(self,proportion):
         new_duration = int(self.duration*proportion)
-        if(new_duration<=Note.MAX_DURATION and new_duration>=Note.MIN_DURATION): #valid duration
+        self.set_duration_and_startTime(new_duration,self.startTime,changingDur=True)
+        '''if(new_duration<=Note.MAX_DURATION and new_duration>=Note.MIN_DURATION): #valid duration
             if(new_duration+self.startTime<=Note.MAX_SAMPLES): #doesn't go over song length
                 self.duration = new_duration
             else:
@@ -65,12 +83,13 @@ class Note:
         elif(new_duration>Note.MAX_DURATION):
             self.duration = Note.MAX_DURATION #upper bound on duration
         else:
-            self.duration = Note.MIN_DURATION #lower bound
+            self.duration = Note.MIN_DURATION #lower bound'''
             
     #sampleShift = integer, shift start time by sampleShift samples
     def shift_start(self,sampleShift):
         new_startTime = self.startTime+sampleShift
-        if(new_startTime<=Note.MAX_START and new_startTime>=Note.MIN_START):
+        self.set_duration_and_startTime(self.duration,new_startTime,changingDur=False)
+        '''if(new_startTime<=Note.MAX_START and new_startTime>=Note.MIN_START):
             if(new_startTime+self.duration<=Note.MAX_SAMPLES):
                 self.startTime = new_startTime
             else:
@@ -78,7 +97,7 @@ class Note:
         elif(new_startTime<Note.MIN_START):
             self.startTime = Note.MIN_START
         else:
-            self.startTime = Note.MAX_START
+            self.startTime = Note.MAX_SAMPLES-self.duration'''
     #shift velocity by vel_change amount, if sets to 0 or below, return 0 flag indicating to delete note
     def shift_velocity(self,vel_change):
         new_vel =self.velocity+vel_change

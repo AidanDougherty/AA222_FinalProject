@@ -8,7 +8,8 @@ def run_ga(readpath): #path to 44.1kHz, 10s song
     song = utilities.process_wav(readpath)
     song = utilities.downsample(song)
     (f,t,Sxx) = utilities.calc_spectrogram(song)
-    Sxx = utilities.normalize_frames(Sxx)
+    if(parameters.NORMALIZATION_OPT):
+        Sxx = utilities.normalize_frames(Sxx)
     target_note_amps = utilities.eval_note_amplitudes(Sxx) #spectrogram of note amplitudes
 
     #Make Random Initial Population
@@ -26,6 +27,9 @@ def run_ga(readpath): #path to 44.1kHz, 10s song
         best_individual = population[0]
         gen_fitness[ngen] = calc_average_fitness(population,target_note_amps)
         print(f"Current Fitness: {gen_fitness[ngen]}")
+        if(ngen>0):
+            if(np.abs(gen_fitness[ngen-1]-gen_fitness[ngen])<=parameters.GENERATION_TOLERANCE):
+                break
         
         parents = tournament_select(population,parameters.TOURNAMENT_SIZE,parameters.NUM_PARENTS,target_note_amps)
         parentsA = parents[:len(parents)//2]
@@ -39,7 +43,7 @@ def run_ga(readpath): #path to 44.1kHz, 10s song
             population.append(best_individual.clone_and_mutate())
     
     population = sorted(population, key=lambda x: x.evaluate_self(target_note_amps), reverse=False)[:parameters.POP_SIZE]
-    gen_fitness[-1] = calc_average_fitness(population,target_note_amps)
+    gen_fitness = np.trim_zeros(gen_fitness)
     return (population[0],gen_fitness)
 
 def calc_average_fitness(pop,target_note_amps):

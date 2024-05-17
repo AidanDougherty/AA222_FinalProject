@@ -14,6 +14,7 @@ class Genome:
             for i in range(0,num_notes):
                 noteList.append(Note.Note())
             self.noteList = noteList
+            self.remove_small_notes()
             self.sort() #sort by start time
         elif any(not isinstance(x, Note.Note) for x in noteList):
             print("ERROR: noteList must contain only objects of type NOTE")
@@ -83,7 +84,7 @@ class Genome:
                 elif p==3: #change duration 50% to 150%
                     prop = random.random() + 0.5
                     n.change_duration(prop)
-                    if(not n.duration==parameters.MIN_DURATION): #if note becomes too small, delete
+                    if(not n.duration<=parameters.MIN_DURATION): #if note becomes too small, delete
                         new_noteList.append(n)
                 elif p==4:  #change velocity within +/- 16
                     velShift = int((2*random.random()-1)*parameters.MAX_VELOCITY_SHIFT)
@@ -106,13 +107,20 @@ class Genome:
                     else:
                         n1 = Note.Note()
                     new_noteList.append(n1)
-                    pass
             else:
                 new_noteList.append(n)
         self.noteList = new_noteList
+        self.remove_small_notes() #get rid of any lingering small notes
         self.sort() #sort self for convenience
         
-
+        
+    def remove_small_notes(self):
+        new_noteList = []
+        for n in self.noteList:
+            if(n.duration>parameters.MIN_DURATION):
+                new_noteList.append(n)
+        self.noteList = new_noteList
+    
     def sort(self):
         self.noteList = sorted(self.noteList, key=lambda x: x.startTime, reverse=False)
     
@@ -133,7 +141,8 @@ class Genome:
             except ValueError:
                 print(f"note duration: {n.duration}")
                 print(f"note start time: {n.startTime}")
-                print(len(w))
+                print(f"Length of w: {len(w)}")
+                self.print_notes()
                 raise ValueError("error still occurred")
             
             try:
@@ -142,6 +151,7 @@ class Genome:
                 print(f"note duration: {n.duration}")
                 print(f"note start time: {n.startTime}")
                 print(f"Length of w: {len(w)}")
+                self.print_notes
                 raise ValueError("error still occurred")
             
         #add rescaling? -> normalize frames in eval

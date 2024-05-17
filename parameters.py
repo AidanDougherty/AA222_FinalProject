@@ -41,8 +41,10 @@ FREQ_AXIS = np.linspace(0,DOWNSAMPLE_FS/2,int(NFFT/2)) #real freq axis of NFFT p
 NOTE_INDICES = np.array([[np.where(FREQ_AXIS==f)[0] for f in nsmallest(3, FREQ_AXIS, key=lambda x: abs(x - nf))] for nf in note_freqs]).reshape(37,3).T
 #^3x37 array of 3 closest indices in FREQ_AXIS to each note
 
-NORMALIZATION_OPT = True
+NORMALIZATION_OPT = False
 MAX_RESCALE_FACTOR = 10
+
+GENERATION_TOLERANCE = 1e4
 
 #Population Parameters
 POP_SIZE = 200
@@ -50,5 +52,5 @@ NUM_CHILDREN = 100
 NUM_PARENTS = 90
 NUM_MUTATE_BEST = NUM_CHILDREN - NUM_PARENTS #proportion of population that is created from mutating best individual
 ELITE_SIZE = 200
-NUM_GENERATIONS = 500
+NUM_GENERATIONS = 100
 TOURNAMENT_SIZE = 5
