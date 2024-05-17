@@ -26,14 +26,17 @@ class Genome:
     def __add__(self,other):
         return Genome(self.noteList + other.noteList)
     
-    #return 2 children with crossed genomes
+    #return tuple of genomes: 2 children with crossed genomes
     def crossover(self,partner):
-        cross_time = int(random.random()*parameters.MAX_SAMPLES)
-        self_genomes = self.split_genome(cross_time)
-        partner_genomes = partner.split_genome(cross_time)
-        return (self_genomes[0]+partner_genomes[1], self_genomes[1]+partner_genomes[0])
+        if(random.random()>parameters.CROSSOVER_PROBABILITY):
+            return(copy.copy(self),copy.copy(partner))
+        else:
+            cross_time = int(random.random()*parameters.MAX_SAMPLES)
+            self_genomes = self.split_genome(cross_time)
+            partner_genomes = partner.split_genome(cross_time)
+            return (self_genomes[0]+partner_genomes[1], self_genomes[1]+partner_genomes[0])
 
-    #Split one genome into 2 at crosstime, returns two genomes
+    #Split one genome into 2 at crosstime, returns two genomes in list
     def split_genome(self,cross_time):
         #find which notes are playing at cross time
         notelist_A = [] #before cut
@@ -125,8 +128,22 @@ class Genome:
             w = np.arange(n.duration-taper_width,n.duration)
             w = 0.5 * (1 + np.cos(np.pi * (-2.0/taper_prop + 1 + 2.0*w/taper_prop/(n.duration)))) #tapered cosine 
             note_data = (note_data*(n.velocity/(parameters.MAX_VELOCITY/2))) #set velocity, add averaging?
-            note_data[-len(w):]=np.multiply(note_data[-len(w):],w) #taper ending
-            song[n.startTime:n.startTime+n.duration]+=note_data
+            try:
+                note_data[-len(w):]=np.multiply(note_data[-len(w):],w) #taper ending
+            except ValueError:
+                print(f"note duration: {n.duration}")
+                print(f"note start time: {n.startTime}")
+                print(len(w))
+                raise ValueError("error still occurred")
+            
+            try:
+                song[n.startTime:n.startTime+n.duration]+=note_data
+            except ValueError:
+                print(f"note duration: {n.duration}")
+                print(f"note start time: {n.startTime}")
+                print(f"Length of w: {len(w)}")
+                raise ValueError("error still occurred")
+            
         #add rescaling? -> normalize frames in eval
         return song.astype(np.int16)
     

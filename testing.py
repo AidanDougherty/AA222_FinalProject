@@ -68,12 +68,13 @@ ttls = utilities.make_ttls()
 utilities.draw_midi(ttls)
 '''
 
-readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+#Spectrograms
+'''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
 song = utilities.process_wav(readpath)
-(song,fs) = utilities.downsample(song)
+song = utilities.downsample(song)
 (f,t,Sxx) = utilities.calc_spectrogram(song)
 print(Sxx.shape)
-Sxx2 = utilities.normalize_spec_frames(Sxx)
+Sxx2 = utilities.normalize_frames(Sxx)
 ax = plt.pcolormesh(t, f, Sxx2, shading='gouraud')
 plt.axis((0,10,0,600))
 plt.ylabel('Frequency [Hz]')
@@ -82,4 +83,42 @@ plt.xlabel('Time [sec]')
 #plt.plot(f,Sxx[:,45])
 #plt.xlabel('Frequency [Hz]')
 #plt.ylabel('Amplitude')
-plt.show()
+plt.show()'''
+
+
+#note frequencies
+'''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+song = utilities.process_wav(readpath)
+song = utilities.downsample(song)
+(f,t,Sxx) = utilities.calc_spectrogram(song)
+print(Sxx.shape)
+#print(parameters.NOTE_INDICES)
+plt.stem(f)
+plt.axis((0,650,0,700))
+plt.hlines(parameters.note_freqs,0,650,'r')
+plt.ylabel('Frequency [Hz]')
+plt.show()'''
+
+#Calc Note Amplitudes + Test Fitness function
+readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+song = utilities.process_wav(readpath)
+song = utilities.downsample(song)
+(f,t,Sxx) = utilities.calc_spectrogram(song)
+print(Sxx.shape)
+Sxx = utilities.normalize_frames(Sxx)
+target_amps = utilities.eval_note_amplitudes(Sxx)
+#ax = plt.pcolormesh(t, np.arange(1,38), amps, shading='gouraud')
+#plt.show()
+
+ttls_gen = utilities.make_ttls()
+Iperf = Individual.Individual(genome=ttls_gen)
+cmaj_gen = utilities.make_Cmaj_up()
+Icmaj = Individual.Individual(genome=cmaj_gen)
+Irand = Individual.Individual()
+quiet_gen = Genome.Genome(noteList=[])
+Irest = Individual.Individual(quiet_gen)
+print(f"Ideal Score: {Iperf.evaluate_self(target_amps)}")
+print(f"CMajor Score: {Icmaj.evaluate_self(target_amps)}")
+print(f"Random Score: {Irand.evaluate_self(target_amps)}")
+print(f"Silent Score: {Irest.evaluate_self(target_amps)}")
+#utilities.draw_midi(Irand.genome)

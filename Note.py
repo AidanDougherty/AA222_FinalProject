@@ -9,6 +9,7 @@ class Note:
     MAX_SAMPLES = parameters.MAX_SAMPLES #total samples in song
     MAX_DURATION = parameters.MAX_DURATION #max samples for one note
     MIN_DURATION = parameters.MIN_DURATION #min samples for one note
+    MAX_START = parameters.MAX_START
     MIN_START = parameters.MIN_START #in samples
     MAX_VELOCITY = parameters.MAX_VELOCITY
     def __init__(self,noteName=None,startTime=None,duration=None,velocity=None):
@@ -28,12 +29,12 @@ class Note:
     #RANDOM NOTE GENERATION (UNIFORM DISTRIBUTION)
     def set_rand_param(self):
         self.noteName = random.choice(Note.notes)
-        self.startTime = int(random.random()*Note.MAX_SAMPLES)
-        dur = int(random.random()*Note.MAX_DURATION)
-        if(self.startTime+dur<=Note.MAX_SAMPLES):
+        self.startTime = int(random.random()*(Note.MAX_START-Note.MIN_START))+Note.MIN_START
+        dur = int(random.random()*(Note.MAX_DURATION-Note.MIN_DURATION))+Note.MIN_DURATION
+        if(self.startTime+dur<=Note.MAX_SAMPLES): #check note doesn't go over song length
             self.duration = dur
         else:
-            self.duration = Note.MAX_SAMPLES-self.startTime
+            self.duration = int(Note.MAX_SAMPLES-self.startTime)
         self.velocity = int(random.random()*Note.MAX_VELOCITY)
 
     #directionIsUp = boolean, True = shift up
@@ -58,7 +59,7 @@ class Note:
         new_duration = int(self.duration*proportion)
         if(new_duration<=Note.MAX_DURATION and new_duration>=Note.MIN_DURATION): #valid duration
             if(new_duration+self.startTime<=Note.MAX_SAMPLES): #doesn't go over song length
-                self.duration = proportion*self.duration
+                self.duration = new_duration
             else:
                 self.duration = Note.MAX_SAMPLES - self.startTime #if goes over, play note til end
         elif(new_duration>Note.MAX_DURATION):
@@ -69,13 +70,15 @@ class Note:
     #sampleShift = integer, shift start time by sampleShift samples
     def shift_start(self,sampleShift):
         new_startTime = self.startTime+sampleShift
-        if(new_startTime+self.duration<=Note.MAX_SAMPLES and new_startTime>=Note.MIN_START):
-            self.startTime = new_startTime
-        elif(new_startTime+self.duration>Note.MAX_SAMPLES):
-            self.startTime = Note.MAX_SAMPLES-self.duration
-        else:
+        if(new_startTime<=Note.MAX_START and new_startTime>=Note.MIN_START):
+            if(new_startTime+self.duration<=Note.MAX_SAMPLES):
+                self.startTime = new_startTime
+            else:
+                self.startTime = Note.MAX_SAMPLES-self.duration
+        elif(new_startTime<Note.MIN_START):
             self.startTime = Note.MIN_START
-
+        else:
+            self.startTime = Note.MAX_START
     #shift velocity by vel_change amount, if sets to 0 or below, return 0 flag indicating to delete note
     def shift_velocity(self,vel_change):
         new_vel =self.velocity+vel_change

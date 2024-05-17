@@ -87,7 +87,7 @@ def process_wav(readpath):
     return data
 
 def downsample(signal): #downsample 44.1kHz by factor of 10 -> fs = 4410 Hz
-    return (sig.decimate(signal,parameters.DOWNSAMPLE_FACTOR), int(parameters.SAMPLE_RATE/parameters.DOWNSAMPLE_FACTOR))
+    return sig.decimate(signal,parameters.DOWNSAMPLE_FACTOR)
 
 #Get Spectrogram of downsampled signal
 def calc_spectrogram(time_seq_ds):
@@ -99,11 +99,18 @@ def calc_spectrogram(time_seq_ds):
     freqs,spgram = sig.periodogram(time_seq_array,parameters.SAMPLE_RATE,'hann')
     '''
     noverlap = int(parameters.FRAME_OVERLAP*parameters.FRAME_SAMPLES)
-    nfft = 4*parameters.FRAME_SAMPLES #gives 2.15 Hz resolution
+    nfft = parameters.NFFT #gives ~1 Hz resolution for 1024 frame samples, 4410 fs
     (f,t,Sxx) = sig.spectrogram(x=time_seq_ds,fs=parameters.DOWNSAMPLE_FS,window='hann',nperseg=parameters.FRAME_SAMPLES,noverlap=noverlap,nfft=nfft)
     return (f,t,Sxx)
 
-def normalize_spec_frames(Sxx): #Normalize Spectrogram time frames between each other
+def get_time_frames(time_seq_ds):
+    time_seq_array = np.zeros((parameters.FRAME_SAMPLES,parameters.NUM_FRAMES)) #matrix with each col = 4096 time samples, 50% overlap
+    for i in range(0,parameters.NUM_FRAMES): #parse time data into array
+        start_idx = int(i*(1-parameters.FRAME_OVERLAP)*parameters.FRAME_SAMPLES)
+        time_seq_array[:,i] = time_seq_ds[start_idx:start_idx+parameters.FRAME_SAMPLES]
+    return time_seq_array
+
+def normalize_frames(Sxx): #Normalize Spectrogram or Time frames between each other
     #rescale all frames so that mean of frame i = mean of all frames up to i
     (m,n) = Sxx.shape
     Sxx_means = np.mean(Sxx,axis=0)#column average
@@ -111,11 +118,19 @@ def normalize_spec_frames(Sxx): #Normalize Spectrogram time frames between each 
     Nxx = np.zeros((m,n))
     for i in range(0,n):
         running_avg = Sxx_mean_cumsums[i]/(i+1)
-        rescale_factor = running_avg/Sxx_means[i]
+        rescale_factor = running_avg/(Sxx_means[i]+1e-10)
         if(rescale_factor<(1/parameters.MAX_RESCALE_FACTOR)):
             rescale_factor=(1/parameters.MAX_RESCALE_FACTOR)
         elif(rescale_factor>parameters.MAX_RESCALE_FACTOR):
             rescale_factor=parameters.MAX_RESCALE_FACTOR
         Nxx[:,i] = rescale_factor*Sxx[:,i]
     return Nxx
+    
+def eval_note_amplitudes(Sxx): #return array of amplitudes found for each note for every frame in Sxx (Spectrogram), returns 37xNUM_FRAMES
+    (m,n) = Sxx.shape
+    note_amps = np.zeros((len(parameters.notes),parameters.NUM_FRAMES))
+    for i in range(0,n):#each frame
+        for j in range(0,len(parameters.notes)):#each note freq
+            note_amps[j,i]=np.mean(Sxx[parameters.NOTE_INDICES[:,j],i])
+    return note_amps
     pass
