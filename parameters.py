@@ -8,7 +8,10 @@ note_freqs = [82.41,87.31,92.5,98.0,103.8,110.0,116.5,123.5,130.8,138.6,146.8,15
               329.6,349.2,370.0,392.0,415.3,440.0,466.2,493.9,523.3,554.3,587.3,622.3,659.3]
 
 #Song/Note Characteristics
-SAMPLE_RATE = 44100 #kHz
+ORIGINAL_SAMPLE_RATE = 44100
+DOWNSAMPLE_FACTOR = 10
+#SAMPLE_RATE = int(ORIGINAL_SAMPLE_RATE/DOWNSAMPLE_FACTOR) #kHz
+SAMPLE_RATE = ORIGINAL_SAMPLE_RATE
 MAX_SONG_TIME = 10 #Seconds in song
 MAX_NOTE_TIME = 4 #max seconds for one note
 MIN_NOTE_TIME = 0.1 #min seconds for one note
@@ -18,6 +21,7 @@ MIN_DURATION = int(SAMPLE_RATE*MIN_NOTE_TIME) #min samples for one note
 MIN_START = 0 #in samples
 MAX_START = MAX_SAMPLES-MIN_DURATION
 MAX_VELOCITY = 128 #0 to 128
+
 
 #Genetics
 CROSSOVER_PROBABILITY = 0.75
@@ -33,21 +37,25 @@ MAX_NUMBER_NOTES = 30
 DOWNSAMPLE_FACTOR = 10
 DOWNSAMPLE_FS = int(SAMPLE_RATE/DOWNSAMPLE_FACTOR)
 
-FRAME_SAMPLES = 512 #after downsampling by 10
-FRAME_OVERLAP = 0.5
-NUM_FRAMES = int((MAX_SAMPLES/DOWNSAMPLE_FACTOR)/(FRAME_SAMPLES*(1-FRAME_OVERLAP))) - 1
-NFFT = 8*FRAME_SAMPLES
+FRAME_SAMPLES = 512 #after downsampling by 10 (4096 for ds)
+FRAME_OVERLAP = 0.5 #x100 = % overlapping (0.9)
+NUM_FRAMES = int(np.ceil((MAX_SAMPLES/DOWNSAMPLE_FACTOR-FRAME_SAMPLES)/(FRAME_SAMPLES*(1-FRAME_OVERLAP)))) 
+NFFT = 8*FRAME_SAMPLES #freq spacing = 1 Hz, freq resolution with hanning = 8 Hz, (same as frame samples for ds)
 FREQ_AXIS = np.linspace(0,DOWNSAMPLE_FS/2,int(NFFT/2)) #real freq axis of NFFT point FFT of downsampled frame
-NOTE_INDICES = np.array([[np.where(FREQ_AXIS==f)[0] for f in nsmallest(3, FREQ_AXIS, key=lambda x: abs(x - nf))] for nf in note_freqs]).reshape(37,3).T
+FREQ_PER_NOTE = 1
+NOTE_INDICES = np.array([[np.where(FREQ_AXIS==f)[0] for f in nsmallest(FREQ_PER_NOTE, FREQ_AXIS, key=lambda x: abs(x - nf))] for nf in note_freqs]).reshape(37,FREQ_PER_NOTE).T
 #^3x37 array of 3 closest indices in FREQ_AXIS to each note
 
 NORMALIZATION_OPT = False
-MAX_RESCALE_FACTOR = 10
+MAX_NORMALIZATION_FACTOR = 10
+MAX_RESCALE_FACTOR = 1e6
+HARMONIC_ATTEN_FACTOR = 0.1
+HARMONIC_TO_PEAK_RATIO = 0.3 #ratio of harmonics to fundamental
 
-GENERATION_TOLERANCE = 1e4
+GENERATION_TOLERANCE = 1
 
 #Population Parameters
-POP_SIZE = 200
+POP_SIZE = 300
 NUM_CHILDREN = 100
 NUM_PARENTS = 90
 NUM_MUTATE_BEST = NUM_CHILDREN - NUM_PARENTS #proportion of population that is created from mutating best individual

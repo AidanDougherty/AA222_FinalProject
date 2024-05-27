@@ -8,8 +8,13 @@ import random
 import pickle
 import parameters
 import scipy.io.wavfile as wavfile
-random.seed(1)
+random.seed(2)
+
+#CHANGE THIS PATH FOR NEW SONG
+#ALSO CHANGE PATH IN GENOME TO POINT TO NOTES FOLDER
 readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+
+
 (population,gen_fitness,best_fit) = GeneticAlgorithm.run_ga(readpath)
 best_individual = population[0]
 second = population[1]
@@ -17,7 +22,7 @@ print(f"Best Fitness: {best_fit}")
 s = best_individual.genome.synthesize()
 wavfile.write('best.wav',parameters.SAMPLE_RATE,s)
 
-with open('FFT_noNorm_200gen_freqpen.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
+with open('Test_6.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([population, gen_fitness], f)
 
 plt.figure()
@@ -31,7 +36,7 @@ utilities.draw_midi(best_individual.genome)
 plt.title("Best Individual")
 utilities.draw_midi(second.genome)
 plt.title("Second Best Individual")
-(f,t,Sxx) = utilities.calc_spectrogram(utilities.downsample(best_individual.genome.synthesize()))
+(f,t,Sxx) = utilities.calc_spectrogram(utilities.downsample(s))
 Sxx = utilities.normalize_frames(Sxx)
 plt.figure()
 ax = plt.pcolormesh(t, f, Sxx, shading='gouraud')

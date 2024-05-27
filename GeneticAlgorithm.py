@@ -11,12 +11,16 @@ def run_ga(readpath): #path to 44.1kHz, 10s song
     #if(parameters.NORMALIZATION_OPT):
         #Sxx = utilities.normalize_frames(Sxx)
     Sxx = utilities.normalize_frames(Sxx)
+    #Sxx = utilities.attenuate_harmonics(Sxx)
     target_note_amps = utilities.eval_note_amplitudes(Sxx) #spectrogram of note amplitudes
+    approx_genome = utilities.fit_notes(target_note_amps)
 
-    #Make Random Initial Population
-    population = [] #list of Individuals
-    for i in range(0,parameters.POP_SIZE):
-        population.append(Individual.Individual())
+    #Make Initial Population
+    population = [Individual.Individual(approx_genome)] #list of Individuals
+    for i in range(0,parameters.POP_SIZE-1):
+        mutated_gen = copy.copy(approx_genome)
+        mutated_gen.mutate(forced=True)
+        population.append(Individual.Individual(mutated_gen))
     
     gen_fitness = np.zeros(parameters.NUM_GENERATIONS+1) #array for storing average fitness of each generation
     

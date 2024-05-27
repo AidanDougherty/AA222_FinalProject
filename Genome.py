@@ -60,64 +60,87 @@ class Genome:
                 notelist_B.append(n_B)
         return [Genome(notelist_A), Genome(notelist_B)]
 
-    def mutate(self):
-        new_noteList = []
-        for n in self.noteList:
-            if(random.random()<=parameters.MUTATION_PROBABILITY): #each note has 10% chance to mutate
-                p = random.randint(1,7)
-                #print(p)
-                if p==1: #Note frequency change, +/- octave or half step
-                    q = random.random()
-                    if(q<0.25):
-                        n.shift_octave(directionIsUp=True)
-                    elif(q<0.5):
-                        n.shift_octave(directionIsUp=False)
-                    elif(q<0.75):
-                        n.shift_semitone(directionIsUp=True)
-                    else:
-                        n.shift_semitone(directionIsUp=False)
-                    new_noteList.append(n)
-                elif p==2: #shift start time
-                    startShift = int((2*random.random()-1)*parameters.MAX_START_SHIFT*parameters.SAMPLE_RATE)
-                    n.shift_start(startShift)
-                    new_noteList.append(n)
-                elif p==3: #change duration 50% to 200%, evenly weight pdf to 50% grow or shrink?
-                    prop = 1.5*random.random() + 0.5
-                    n.change_duration(prop)
-                    if(not n.duration<=parameters.MIN_DURATION): #if note becomes too small, delete
-                        new_noteList.append(n)
-                elif p==4:  #change velocity within +/- 16
-                    velShift = int((2*random.random()-1)*parameters.MAX_VELOCITY_SHIFT)
-                    n.shift_velocity(velShift)
-                    if(not n.velocity == 0): #if note becomes too quiet, delete
-                        new_noteList.append(n)
-                elif p==5: #even split with silence equal to half note duration
-                    d = n.duration
-                    n.change_duration(0.5)
-                    n_copy = copy.copy(n) #split note in two
-                    n_copy.shift_start(d)
-                    new_noteList.append(n)
-                    new_noteList.append(n_copy)
-                elif p==6: #remove note
-                    pass #simply don't add to new notelist
-                elif p==7: #add new note - random or duplicate
-                    new_noteList.append(n)
-                    if(random.random()<0.5):
-                        n1 = copy.copy(n)
-                    else:
-                        n1 = Note.Note()
-                    new_noteList.append(n1)
-            else:
-                new_noteList.append(n)
-        self.noteList = new_noteList
+    def mutate(self,forced=None):
+        
+        if(forced==True or random.random()<=parameters.MUTATION_PROBABILITY): #10% chance to mutate one note or whole genome
+            n = random.choice(self.noteList)
+            self.noteList.remove(n)
+            p = random.randint(1,9) #no duration mutation for all notes
+            #print(p)
+            if p==1: #Note frequency change, +/- octave or half step
+                q = random.random()
+                if(q<0.25):
+                    n.shift_octave(directionIsUp=True)
+                elif(q<0.5):
+                    n.shift_octave(directionIsUp=False)
+                elif(q<0.75):
+                    n.shift_semitone(directionIsUp=True)
+                else:
+                    n.shift_semitone(directionIsUp=False)
+                self.noteList.append(n)
+            elif p==2: #shift start time
+                startShift = int((2*random.random()-1)*parameters.MAX_START_SHIFT*parameters.SAMPLE_RATE)
+                n.shift_start(startShift)
+                self.noteList.append(n)
+            elif p==3: #change duration 50% to 200%, evenly weight pdf to 50% grow or shrink?
+                prop = 1.5*random.random() + 0.5
+                n.change_duration(prop)
+                if(not n.duration<=parameters.MIN_DURATION): #if note becomes too small, delete
+                    self.noteList.append(n)
+            elif p==4:  #change velocity within +/- 16
+                velShift = int((2*random.random()-1)*parameters.MAX_VELOCITY_SHIFT)
+                n.shift_velocity(velShift)
+                if(not n.velocity == 0): #if note becomes too quiet, delete
+                    self.noteList.append(n)
+            elif p==5: #even split with silence equal to half note duration
+                d = n.duration
+                n.change_duration(0.5)
+                n_copy = copy.copy(n) #split note in two
+                n_copy.shift_start(d)
+                self.noteList.append(n)
+                self.noteList.append(n_copy)
+            elif p==6: #remove note
+                pass #simply don't add back to notelist
+            elif p==7: #add new note - random or duplicate
+                self.noteList.append(n)
+                if(random.random()<0.5):
+                    n1 = copy.copy(n)
+                else:
+                    n1 = Note.Note()
+                self.noteList.append(n1)
+            elif p==8: #change all note velocities
+                self.noteList.append(n)
+                v_shift = random.randint(-4,5)
+                for n_s in self.noteList:
+                    n_s.shift_velocity(v_shift)
+            elif p==9: #change all durations
+                self.noteList.append(n)
+                dur_prop = 1.5*random.random() + 0.5
+                for n_s in self.noteList:
+                    n_s.change_duration(dur_prop)
         self.remove_small_notes() #get rid of any lingering small notes
         self.sort() #sort self for convenience
         
-        
+    #Not using overlap removal, cases where notes can overlap in target
+    def remove_overlap_notes(self):
+        new_noteList = copy.copy(self.noteList)
+        L = len(self.noteList)
+        for i in np.arange(0,L): #iterate over each note and check if is inside other note (of same freq) or starts before note other ends
+            n = self.noteList[i]
+            start = n.startTime
+            end = n.startTime+n.duration
+            for j in np.delete(np.arange(0,L),i):
+                n2 = self.noteList[j]
+                if(n.noteName==n2.noteName and start>=n2.startTime and end<=n2.startTime+n2.duration): #if fully inside other note, remove
+                    new_noteList.remove(n)
+                elif(n.noteName==n2.noteName and start>n2.startTime and n2.startTime+n2.duration<end): #if start before other ends, make 2 notes
+                    new_noteList.remove(n)
+                    #split notes apart
+
     def remove_small_notes(self):
         new_noteList = []
         for n in self.noteList:
-            if(n.duration>parameters.MIN_DURATION):
+            if(n.duration>parameters.MIN_DURATION and n.velocity>0):
                 new_noteList.append(n)
         self.noteList = new_noteList
     
@@ -151,7 +174,7 @@ class Genome:
                 print(f"note duration: {n.duration}")
                 print(f"note start time: {n.startTime}")
                 print(f"Length of w: {len(w)}")
-                self.print_notes
+                self.print_notes()
                 raise ValueError("error still occurred")
             
         #add rescaling? -> normalize frames in eval

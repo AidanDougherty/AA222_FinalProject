@@ -9,6 +9,7 @@ import copy
 import parameters
 import matplotlib.pyplot as plt
 import pickle
+import time
 
 #Test Synthesize
 '''
@@ -65,10 +66,10 @@ plt.show()
 
 # plot Midi TTLS
 
-ttls = utilities.make_ttls()
+'''ttls = utilities.make_ttls()
 utilities.draw_midi(ttls)
 plt.title("Ground Truth Melody")
-plt.show()
+plt.show()'''
 
 #Spectrograms
 '''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
@@ -102,13 +103,21 @@ plt.ylabel('Frequency [Hz]')
 plt.show()'''
 
 #Calc Note Amplitudes + Test Fitness function
-'''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
 song = utilities.process_wav(readpath)
+
 song = utilities.downsample(song)
+print(song.shape)
 (f,t,Sxx) = utilities.calc_spectrogram(song)
 print(Sxx.shape)
-Sxx = utilities.normalize_frames(Sxx)
-target_amps = utilities.eval_note_amplitudes(Sxx)
+print(t.shape)
+target_Sxx = utilities.normalize_frames(Sxx)
+#target_Sxx = Sxx
+#target_Sxx = utilities.attenuate_harmonics(target_Sxx)
+
+target_amps = utilities.eval_note_amplitudes(target_Sxx)
+
+print(target_amps.shape)
 ax = plt.pcolormesh(t, np.arange(1,38), target_amps, shading='gouraud')
 plt.show()
 #target_amps = Sxx
@@ -122,10 +131,26 @@ Icmaj = Individual.Individual(genome=cmaj_gen)
 Irand = Individual.Individual()
 quiet_gen = Genome.Genome(noteList=[])
 Irest = Individual.Individual(quiet_gen)
+approx_genome = utilities.fit_notes(target_amps)
+Iapprox = Individual.Individual(approx_genome)
 print(f"Ideal Score: {Iperf.evaluate_self(target_amps)}")
 print(f"CMajor Score: {Icmaj.evaluate_self(target_amps)}")
 print(f"Random Score: {Irand.evaluate_self(target_amps)}")
 print(f"Silent Score: {Irest.evaluate_self(target_amps)}")
+print(f"Estimation Score: {Iapprox.evaluate_self(target_amps)}")
+
+(f,t,ttls_Sxx) = utilities.calc_spectrogram(utilities.downsample(ttls_gen.synthesize()))
+'''ttls_Sxx = utilities.rescale_to_target(ttls_Sxx,target_Sxx)
+plt.plot(f,target_Sxx[:,15],color='blue')
+plt.plot(f,ttls_Sxx[:,15],color='red')
+plt.show()'''
+
+ttls_amps = utilities.eval_note_amplitudes(ttls_Sxx)
+ttls_amps = utilities.rescale_to_target(ttls_amps,target_amps)
+ns = np.arange(1,38)
+plt.plot(ns,target_amps[:,156],color='blue')
+plt.plot(ns,ttls_amps[:,156],color='red')
+plt.show()
 #utilities.draw_midi(Irand.genome)'''
 
 #plotting ga test data
@@ -138,3 +163,20 @@ plt.ylabel("Fitness")
 
 plt.title("Fitness vs Generation, No Normalization, FFT and Freq Penalty Based")
 plt.show()'''
+
+#Time downsampling + synthesis vs FFT
+#downsampling 100 random genomes - 2.456 seconds
+#100 spectrograms of downsampled genomes - 1.710 seconds
+'''ph_list = []
+for i in range(0,100):
+    gen = Genome.Genome()
+    phenotype = gen.synthesize()
+    #phenotype = utilities.downsample(phenotype)
+    ph_list.append(phenotype)
+
+start_time = time.time()
+for ph in ph_list:
+#    spec = utilities.calc_spectrogram(ph)
+    ph = utilities.downsample(ph)
+print("--- %s seconds ---" % (time.time() - start_time))
+'''

@@ -73,13 +73,13 @@ def draw_midi(gen):
 def process_wav(readpath):
     samplerate, data = wavfile.read(readpath)
     #print(samplerate)
-    if(not samplerate==parameters.SAMPLE_RATE):
+    if(not samplerate==parameters.ORIGINAL_SAMPLE_RATE):
         print("ERROR: INPUT WAV IS NOT SAMPLED AT 44100 HZ")
         return
     dim = data.ndim
     if(dim==2):
         data = ((data[:,0]+data[:,1])/2).astype(np.int16) #stereo to mono
-    N = parameters.MAX_SAMPLES
+    N = int(parameters.ORIGINAL_SAMPLE_RATE*parameters.MAX_SONG_TIME)
     if (len(data)>N):
         data = data[:N] #cut to 10 seconds
     elif (len(data)<N):
@@ -87,7 +87,7 @@ def process_wav(readpath):
     return data
 
 def downsample(signal): #downsample 44.1kHz by factor of 10 -> fs = 4410 Hz
-    return sig.decimate(signal,parameters.DOWNSAMPLE_FACTOR)
+    return sig.decimate(signal,parameters.DOWNSAMPLE_FACTOR) #IIR filtering
 
 #Get Spectrogram of downsampled signal
 def calc_spectrogram(time_seq_ds):
@@ -99,8 +99,8 @@ def calc_spectrogram(time_seq_ds):
     freqs,spgram = sig.periodogram(time_seq_array,parameters.SAMPLE_RATE,'hann')
     '''
     noverlap = int(parameters.FRAME_OVERLAP*parameters.FRAME_SAMPLES)
-    nfft = parameters.NFFT #gives ~1 Hz resolution for 1024 frame samples, 4410 fs
-    (f,t,Sxx) = sig.spectrogram(x=time_seq_ds,fs=parameters.DOWNSAMPLE_FS,window='hann',nperseg=parameters.FRAME_SAMPLES,noverlap=noverlap,nfft=nfft)
+    nfft = parameters.NFFT #gives ~1 Hz separation for 4096 frame samples, 4410 fs, with hanning = 4 Hz res
+    (f,t,Sxx) = sig.spectrogram(x=time_seq_ds,fs=parameters.DOWNSAMPLE_FS,window='boxcar',nperseg=parameters.FRAME_SAMPLES,noverlap=noverlap,nfft=nfft)
     return (f,t,Sxx)
 
 def get_time_frames(time_seq_ds):
@@ -119,10 +119,10 @@ def normalize_frames(Sxx): #Normalize Spectrogram or Time frames between each ot
     for i in range(0,n):
         running_avg = Sxx_mean_cumsums[i]/(i+1)
         rescale_factor = running_avg/(Sxx_means[i]+1e-10)
-        if(rescale_factor<(1/parameters.MAX_RESCALE_FACTOR)):
-            rescale_factor=(1/parameters.MAX_RESCALE_FACTOR)
-        elif(rescale_factor>parameters.MAX_RESCALE_FACTOR):
-            rescale_factor=parameters.MAX_RESCALE_FACTOR
+        if(rescale_factor<(1/parameters.MAX_NORMALIZATION_FACTOR)):
+            rescale_factor=(1/parameters.MAX_NORMALIZATION_FACTOR)
+        elif(rescale_factor>parameters.MAX_NORMALIZATION_FACTOR):
+            rescale_factor=parameters.MAX_NORMALIZATION_FACTOR
         Nxx[:,i] = rescale_factor*Sxx[:,i]
     return Nxx
     
@@ -133,4 +133,47 @@ def eval_note_amplitudes(Sxx): #return array of amplitudes found for each note f
         for j in range(0,len(parameters.notes)):#each note freq
             note_amps[j,i]=np.mean(Sxx[parameters.NOTE_INDICES[:,j],i])
     return note_amps
-    pass
+
+def rescale_to_target(Sxx,target_Sxx): #for each frame in Sxx, amplify so that peak matches that of target_Sxx
+    Sxx_new = np.zeros_like(Sxx)
+    (m,n) = Sxx.shape
+    for i in range(0,n):
+        scale_factor = min(np.max(target_Sxx[:,i])/(np.max(Sxx[:,i])+1e-10),parameters.MAX_RESCALE_FACTOR)
+        Sxx_new[:,i] = scale_factor*Sxx[:,i]
+    return Sxx_new
+
+def attenuate_harmonics(Sxx): #attenuate everything in frame that is below 0.2*max
+    Sxx_new = np.zeros_like(Sxx)
+    (m,n) = Sxx.shape
+    for i in range(0,n):
+        max_val = np.max(Sxx[:,i])
+        for j in range(0,m):
+            if(Sxx[j,i]<=parameters.HARMONIC_TO_PEAK_RATIO*max_val):
+                Sxx_new[j,i] = parameters.HARMONIC_ATTEN_FACTOR*Sxx[j,i]
+            else:
+                Sxx_new[j,i] = Sxx[j,i]
+    return Sxx_new
+
+def fit_notes(target_note_amps): #given target note amplitudes, generate genome
+    (m,n) = target_note_amps.shape
+    peak_amp = np.max(target_note_amps)
+    cutoff = 0.1*peak_amp
+    fit_noteList = []
+    for i in range(0,m):
+        start_frame = -1
+        end_frame = -1
+        for j in range(0,n):
+            if(target_note_amps[i,j]>cutoff and start_frame==-1): #rising edge
+                start_frame=j
+            elif(target_note_amps[i,j]<cutoff and start_frame>-1 or (target_note_amps[i,j]>cutoff and start_frame>-1 and j==n-1)): #falling edge/last note
+                end_frame=j
+                nframes = end_frame-start_frame
+                start_time = int(start_frame*parameters.FRAME_SAMPLES*(1-parameters.FRAME_OVERLAP)*parameters.DOWNSAMPLE_FACTOR)
+                duration = int((parameters.FRAME_SAMPLES + (nframes-1)*parameters.FRAME_SAMPLES*(1-parameters.FRAME_OVERLAP))*parameters.DOWNSAMPLE_FACTOR)
+                vel=64
+                fit_noteList.append(Note.Note(parameters.notes[i],start_time,duration,vel))
+                start_frame=-1
+                end_frame=-1
+
+    return Genome.Genome(fit_noteList)
+

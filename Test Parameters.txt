@@ -1,0 +1,10 @@
+1: FFT, 5e3 freq pen, No Norm, rescaling, 1024 window, 75% overlap, 1 freq/note, random init, 0.1 mutation, 200 gen
+2: FFT, 2e3 freq pen, No Norm, rescaling, 512 window, 50% overlap, 1 freq/note, random init, 0.01 mutation, 200 gen
+3: same as 2, 0.1 mutation with new mutations
+4: same as 3, approximation of target used for initial population
+5: FFT, 2e3 freq pen, No Norm or rescale, 512 window, 50% overlap, 1 freq/note, approx init, 0.1 mutation, 200 gen
+	- no overall duration mutation
+6: Same as 5, no freq pen, 300 gen
+
+best so far:
+FFT, ~5e3 freq pen, No Norm, no rescale, 512 window, 50% overlap, 3 freq/note, random init, 0.1 mutation, 200 gen

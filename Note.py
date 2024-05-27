@@ -23,7 +23,10 @@ class Note:
                 raise Exception("invalid noteName, choose between E2 and E5")
             #TODO:Implement Checks on min/max range
             self.startTime = int(startTime) #in samples, int
-            self.duration = int(duration) #in samples, int
+            if(int(duration)<Note.MAX_DURATION):
+                self.duration = int(duration) #in samples, int
+            else:
+                self.duration = Note.MAX_DURATION
             self.velocity = int(velocity) #int from 0 to 128
 
     #RANDOM NOTE GENERATION (UNIFORM DISTRIBUTION)
