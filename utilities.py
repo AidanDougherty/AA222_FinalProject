@@ -157,7 +157,7 @@ def attenuate_harmonics(Sxx): #attenuate everything in frame that is below 0.2*m
 def fit_notes(target_note_amps): #given target note amplitudes, generate genome
     (m,n) = target_note_amps.shape
     peak_amp = np.max(target_note_amps)
-    cutoff = 0.1*peak_amp
+    cutoff = 0.2*peak_amp
     fit_noteList = []
     for i in range(0,m):
         start_frame = -1

@@ -83,7 +83,7 @@ class Genome:
                 n.shift_start(startShift)
                 self.noteList.append(n)
             elif p==3: #change duration 50% to 200%, evenly weight pdf to 50% grow or shrink?
-                prop = 1.5*random.random() + 0.5
+                prop = 1.0*random.random() + 0.5
                 n.change_duration(prop)
                 if(not n.duration<=parameters.MIN_DURATION): #if note becomes too small, delete
                     self.noteList.append(n)
@@ -103,10 +103,10 @@ class Genome:
                 pass #simply don't add back to notelist
             elif p==7: #add new note - random or duplicate
                 self.noteList.append(n)
-                if(random.random()<0.5):
-                    n1 = copy.copy(n)
-                else:
-                    n1 = Note.Note()
+                #if(random.random()<0.5):
+                    #n1 = copy.copy(n)
+                #else:
+                n1 = Note.Note()
                 self.noteList.append(n1)
             elif p==8: #change all note velocities
                 self.noteList.append(n)
@@ -115,11 +115,14 @@ class Genome:
                     n_s.shift_velocity(v_shift)
             elif p==9: #change all durations
                 self.noteList.append(n)
-                dur_prop = 1.5*random.random() + 0.5
+                dur_prop = 1.0*random.random() + 0.5
                 for n_s in self.noteList:
                     n_s.change_duration(dur_prop)
+        
+        self.remove_overlap_notes() #remove overlapping notes
         self.remove_small_notes() #get rid of any lingering small notes
         self.sort() #sort self for convenience
+        
         
     #Not using overlap removal, cases where notes can overlap in target
     def remove_overlap_notes(self):
@@ -129,19 +132,32 @@ class Genome:
             n = self.noteList[i]
             start = n.startTime
             end = n.startTime+n.duration
-            for j in np.delete(np.arange(0,L),i):
+            for j in np.delete(np.arange(0,L),i): #iterate over all j != i
                 n2 = self.noteList[j]
-                if(n.noteName==n2.noteName and start>=n2.startTime and end<=n2.startTime+n2.duration): #if fully inside other note, remove
-                    new_noteList.remove(n)
-                elif(n.noteName==n2.noteName and start>n2.startTime and n2.startTime+n2.duration<end): #if start before other ends, make 2 notes
-                    new_noteList.remove(n)
-                    #split notes apart
+                if(n.noteName==n2.noteName):
+                    full_overlap = start>=n2.startTime and end<=n2.startTime+n2.duration
+                    left_side_overlap = start>=n2.startTime and start<=n2.startTime+n2.duration and n2.startTime+n2.duration<end
+                    if(full_overlap): #if fully inside other note, remove
+                        if(n in new_noteList):
+                            new_noteList.remove(n)
+                    elif(left_side_overlap): #if start before other ends, make 2 notes
+                        if(n2 in new_noteList):
+                            new_noteList.remove(n2)
+                            n2.duration = start - n2.startTime - parameters.MIN_DURATION#int(0.2*parameters.SAMPLE_RATE) #separate w small gap
+                            if(n2.duration>0):
+                                new_noteList.append(n2)
+                            #else:
+                                #print(n2.duration)
+        self.noteList = new_noteList
+        self.sort()
+        self.remove_small_notes()
 
     def remove_small_notes(self):
         new_noteList = []
         for n in self.noteList:
             if(n.duration>parameters.MIN_DURATION and n.velocity>0):
                 new_noteList.append(n)
+                
         self.noteList = new_noteList
     
     def sort(self):
@@ -153,7 +169,9 @@ class Genome:
         
         for n in self.noteList:
             samplerate, data = wavfile.read(Genome.readpath+n.noteName+'.wav') #velocity = 64
+            #print(n.noteName+" "+f"{n.duration}")
             note_data = data[:n.duration] #set duration
+            note_data = note_data*parameters.rescale_factors[parameters.notes.index(n.noteName)] #account for fundamental freq rescaling
             taper_prop = 0.1
             taper_width = int(np.floor(taper_prop*(n.duration)))
             w = np.arange(n.duration-taper_width,n.duration)

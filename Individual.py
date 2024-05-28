@@ -23,11 +23,17 @@ class Individual:
             #Bin frames by note frequency
             #compare to binned values in target -> fitness
             note_amps = utilities.eval_note_amplitudes(Sxx)
-            #note_amps = utilities.rescale_to_target(note_amps,target_note_amps)
+            note_amps = utilities.rescale_to_target(note_amps,target_note_amps)
+            #thresh = 0.2*np.max(target_note_amps)
+            #target_peaks = (target_note_amps>thresh)*target_note_amps #zero out peaks less than 0.3 times max
+            #note_peaks = (note_amps>thresh)*note_amps
+            #target_sc = target_note_amps/(np.max(target_note_amps)+1e-8)
+            #self_sc = note_amps/(np.max(target_note_amps)+1e-8)
+
             target_peak_ind = np.argmax(target_note_amps,axis=0)
-            note_peak_ind = np.argmax(note_amps,axis=0)
-            self.fitness = np.mean(np.abs(target_note_amps-note_amps)) #+ 2e3*np.mean(np.abs(target_peak_ind-note_peak_ind)) #absolute freq frame penalty and avg relative peak freq diff pen
-            #self.fitness = np.sum(np.abs(target_note_amps-Sxx))
+            self_peak_ind = np.argmax(note_amps,axis=0)
+            self.fitness = np.mean(np.abs(target_note_amps-note_amps)) #+ 1*np.mean(np.abs(target_peak_ind-self_peak_ind)) #absolute freq frame penalty and avg relative peak freq diff pen
+            #self.fitness = np.mean(np.abs(target_peaks-note_peaks))
             return self.fitness
         else:
             return self.fitness

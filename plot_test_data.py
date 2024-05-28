@@ -16,7 +16,7 @@ target_Sxx = utilities.normalize_frames(Sxx)
 target_amps = utilities.eval_note_amplitudes(target_Sxx)
 
 objects = []
-with (open("Test_6.pkl", "rb")) as openfile:
+with (open("Test_11.pkl", "rb")) as openfile:
     objects = pickle.load(openfile)
 
 #Plot fitness
@@ -31,6 +31,8 @@ best_individual = population[0]
 second = population[1]
 print(best_individual.evaluate_self(target_amps))
 print(second.evaluate_self(target_amps))
+utilities.draw_midi(best_individual.genome)
+best_individual.genome.remove_overlap_notes()
 utilities.draw_midi(best_individual.genome)
 
 plt.show()

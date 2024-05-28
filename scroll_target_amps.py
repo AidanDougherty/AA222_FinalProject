@@ -18,14 +18,25 @@ song = utilities.downsample(song)
 (f,t,Sxx) = utilities.calc_spectrogram(song)
 target_Sxx = utilities.normalize_frames(Sxx)
 target_amps = utilities.eval_note_amplitudes(target_Sxx)
-fit_notes = utilities.fit_notes(target_amps)
+ta_max = np.max(target_amps)
+#target_amps = target_amps/ta_max
+
+'''fit_notes = utilities.fit_notes(target_amps)
 fit_syn = fit_notes.synthesize() #downsampled already
 fit_syn = utilities.downsample(fit_syn)
 (f,t,Sxx3) = utilities.calc_spectrogram(fit_syn)
-fit_amps = utilities.eval_note_amplitudes(Sxx3)
+fit_amps = utilities.eval_note_amplitudes(Sxx3)'''
+
+ttls = utilities.make_ttls()
+ttls_syn = ttls.synthesize() #downsampled already
+ttls_syn = utilities.downsample(ttls_syn)
+(f,t,Sxx3) = utilities.calc_spectrogram(ttls_syn)
+ttls_amps = utilities.eval_note_amplitudes(Sxx3)
+ttls_amps = utilities.rescale_to_target(ttls_amps,target_amps)
+#ttls_amps = ttls_amps/ta_max
 
 objects = []
-with (open("Test_6.pkl", "rb")) as openfile:
+with (open("Test_10.pkl", "rb")) as openfile:
     objects = pickle.load(openfile)
 pop = objects[0]
 best_individual = pop[0]
@@ -34,6 +45,8 @@ phenotype = best_gen.synthesize() #downsampled already
 phenotype = utilities.downsample(phenotype)
 (f,t,Sxx2) = utilities.calc_spectrogram(phenotype)
 best_notes = utilities.eval_note_amplitudes(Sxx2)
+best_notes = utilities.rescale_to_target(best_notes,target_amps)
+#best_notes = best_notes/ta_max
 
 def on_press(event):
     print('press', event.key)
@@ -44,7 +57,8 @@ def on_press(event):
         n+=1
         ax.plot(ns,target_amps[:,n],color='blue')
         ax.plot(ns,best_notes[:,n],color='red')
-        ax.plot(ns,fit_amps[:,n],color='green')
+        #ax.plot(ns,fit_amps[:,n],color='green')
+        ax.plot(ns,ttls_amps[:,n],color='green')
         ax.set_title(f"Frame {n}, t={t[n]:2.3}")
         ax.set_ylim([0, 1e6])
         plt.show()
@@ -60,7 +74,8 @@ fig.canvas.mpl_connect('key_press_event', on_press)
 ns = np.arange(1,38)
 ax.plot(ns,target_amps[:,n],color='blue')
 ax.plot(ns,best_notes[:,n],color='red')
-ax.plot(ns,fit_amps[:,n],color='green')
+#ax.plot(ns,fit_amps[:,n],color='green')
+ax.plot(ns,ttls_amps[:,n],color='green')
 ax.set_ylim([0, 1e6])
 
 

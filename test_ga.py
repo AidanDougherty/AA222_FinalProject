@@ -22,7 +22,7 @@ print(f"Best Fitness: {best_fit}")
 s = best_individual.genome.synthesize()
 wavfile.write('best.wav',parameters.SAMPLE_RATE,s)
 
-with open('Test_6.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
+with open('Test_12.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([population, gen_fitness], f)
 
 plt.figure()

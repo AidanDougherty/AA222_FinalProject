@@ -5,6 +5,12 @@
 5: FFT, 2e3 freq pen, No Norm or rescale, 512 window, 50% overlap, 1 freq/note, approx init, 0.1 mutation, 200 gen
 	- no overall duration mutation
 6: Same as 5, no freq pen, 300 gen
-
+7: same as 6, added note wav peak rescaling
+8: same as above, in evaluation, added target_note_amp and note_amp normalization
+9: same, fixed normalization, both at same scale, changed duration mutations to 50-150%
+10. same, removed normalization
+11. added rescaling with max factor of 2 ---- HUGE SUCCESS ------ SCIENCE!!!
+12. same as above: FFT, no freq pen or norm, rescaling max 2, 512 window, 0.5 overlap, 1 freq/note, approx init, 0.1 mutation, 200 gen
+	- added overlap note removal after mutation
 best so far:
 FFT, ~5e3 freq pen, No Norm, no rescale, 512 window, 50% overlap, 3 freq/note, random init, 0.1 mutation, 200 gen
