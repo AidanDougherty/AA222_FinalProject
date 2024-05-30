@@ -36,6 +36,8 @@ CROSSOVER_PROBABILITY = 0.75
 MUTATION_PROBABILITY = 0.1
 MAX_START_SHIFT = 0.5 #in seconds, for note mutation
 MAX_VELOCITY_SHIFT = 16 #for note mutation
+MAX_DURATION_CHANGE = 1.5 #x100% = maximum duration change as a proportion for mutation
+#change to 1.5 for aprrox init pop
 
 #Random Genome Creation
 MIN_NUMBER_NOTES = 5 #for uniform genome sampling
@@ -56,7 +58,7 @@ NOTE_INDICES = np.array([[np.where(FREQ_AXIS==f)[0] for f in nsmallest(FREQ_PER_
 
 NORMALIZATION_OPT = False
 MAX_NORMALIZATION_FACTOR = 10
-MAX_RESCALE_FACTOR = 2
+MAX_RESCALE_FACTOR = 2 
 HARMONIC_ATTEN_FACTOR = 0.1
 HARMONIC_TO_PEAK_RATIO = 0.3 #ratio of harmonics to fundamental
 
@@ -68,5 +70,15 @@ NUM_CHILDREN = 100
 NUM_PARENTS = 90
 NUM_MUTATE_BEST = NUM_CHILDREN - NUM_PARENTS #proportion of population that is created from mutating best individual
 ELITE_SIZE = 200
-NUM_GENERATIONS = 200
+NUM_GENERATIONS = 50
 TOURNAMENT_SIZE = 5
+
+#Precision/Recall parameters
+MATCH_START_TOL = int(0.5*SAMPLE_RATE)
+MATCH_DUR_TOL = int(0.5*SAMPLE_RATE)
+
+
+#For runnning tests:
+USE_APPROX = True
+USE_FREQ_PEN = False
+RESCALE_OPT = True

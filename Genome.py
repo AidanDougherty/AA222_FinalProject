@@ -83,7 +83,7 @@ class Genome:
                 n.shift_start(startShift)
                 self.noteList.append(n)
             elif p==3: #change duration 50% to 200%, evenly weight pdf to 50% grow or shrink?
-                prop = 1.0*random.random() + 0.5
+                prop = (parameters.MAX_DURATION_CHANGE-0.5)*random.random() + 0.5
                 n.change_duration(prop)
                 if(not n.duration<=parameters.MIN_DURATION): #if note becomes too small, delete
                     self.noteList.append(n)
@@ -115,17 +115,18 @@ class Genome:
                     n_s.shift_velocity(v_shift)
             elif p==9: #change all durations
                 self.noteList.append(n)
-                dur_prop = 1.0*random.random() + 0.5
+                dur_prop = (parameters.MAX_DURATION_CHANGE-0.5)*random.random() + 0.5
                 for n_s in self.noteList:
                     n_s.change_duration(dur_prop)
         
-        self.remove_overlap_notes() #remove overlapping notes
+        #self.remove_overlap_notes() #remove overlapping notes
         self.remove_small_notes() #get rid of any lingering small notes
         self.sort() #sort self for convenience
         
         
-    #Not using overlap removal, cases where notes can overlap in target
-    def remove_overlap_notes(self):
+    #
+    '''def remove_overlap_notes(self):
+        self.sort()
         new_noteList = copy.copy(self.noteList)
         L = len(self.noteList)
         for i in np.arange(0,L): #iterate over each note and check if is inside other note (of same freq) or starts before note other ends
@@ -141,16 +142,81 @@ class Genome:
                         if(n in new_noteList):
                             new_noteList.remove(n)
                     elif(left_side_overlap): #if start before other ends, make 2 notes
-                        if(n2 in new_noteList):
-                            new_noteList.remove(n2)
-                            n2.duration = start - n2.startTime - parameters.MIN_DURATION#int(0.2*parameters.SAMPLE_RATE) #separate w small gap
-                            if(n2.duration>0):
-                                new_noteList.append(n2)
+                        if(n in new_noteList):
+                            new_noteList.remove(n)
+                            new_n = copy.copy(n)
+                            new_start = n2.startTime+n2.duration#+parameters.MIN_DURATION
+                            new_dur = max(0,end-new_start)
+                            new_n.change_duration(new_dur/new_n.duration)
+                            new_n.shift_start(new_start-new_n.startTime)
+                            new_noteList.append(new_n)
+                            #new_noteList.remove(n2)
+                            #n2.duration = start - n2.startTime - parameters.MIN_DURATION#int(0.2*parameters.SAMPLE_RATE) #separate w small gap
+                            #if(n2.duration>0):
+                                #new_noteList.append(n2)
                             #else:
                                 #print(n2.duration)
         self.noteList = new_noteList
         self.sort()
+        self.remove_small_notes()'''
+    
+    def process_notes(self):
         self.remove_small_notes()
+        for i in range(0,10):
+            self.remove_overlap_notes()
+        self.remove_small_notes()
+        for i in range(0,10):
+            self.combine_adjacent_notes()
+        self.remove_small_notes()
+        self.sort()
+
+    def combine_adjacent_notes(self):
+        self.sort()
+        new_noteList = copy.copy(self.noteList)
+        L = len(self.noteList)
+        for i in np.arange(0,L): #iterate over each note and check if is inside other note (of same freq) or starts before note other ends
+            n = self.noteList[i]
+            start = n.startTime
+            end = n.startTime+n.duration
+            for j in np.arange(i,L): #iterate over all j > i
+                n2 = self.noteList[j]
+                if(n.noteName==n2.noteName and np.abs(end-n2.startTime)<0.05*parameters.SAMPLE_RATE):
+                    if(n in new_noteList and n2 in new_noteList):
+                        new_noteList.remove(n)
+                        new_noteList.remove(n2)
+                        n3 = copy.copy(n)
+                        new_dur = n2.startTime+n2.duration-start
+                        n3.change_duration(new_dur/n3.duration)
+                        new_noteList.append(n3)
+        self.noteList = new_noteList
+                    
+    def remove_overlap_notes(self):
+        self.sort()
+        for note in parameters.notes:
+            sublist=[]
+            notes_to_remove=[]
+            for n in self.noteList:
+                if(n.noteName==note):
+                    sublist.append(n)
+                if(len(sublist)>0):
+                    notes_to_remove = Genome.minRemovels(sublist)
+            for n in notes_to_remove:
+                self.noteList.remove(n)
+        
+    
+    def minRemovels(sub_noteList):
+        sub_noteList = sorted(sub_noteList, key=lambda x: x.startTime, reverse=False)
+        size = len(sub_noteList)
+        notes_to_remove = []
+        end = sub_noteList[0].startTime + sub_noteList[0].duration
+        for i in range(1,size):
+            if(sub_noteList[i].startTime<end): #overlap detected
+                notes_to_remove.append(sub_noteList[i])
+                end = min(sub_noteList[i].startTime+sub_noteList[i].duration,end)
+            else:
+                end = sub_noteList[i].startTime+sub_noteList[i].duration
+        
+        return notes_to_remove
 
     def remove_small_notes(self):
         new_noteList = []
@@ -201,9 +267,9 @@ class Genome:
     def print_notes(self):
         notes = [n.noteName for n in self.noteList]
         print(f"Notes: {notes}")
-        startTimes = [round(n.startTime/parameters.SAMPLE_RATE,3) for n in self.noteList]
+        startTimes = [round(n.startTime/parameters.SAMPLE_RATE,5) for n in self.noteList]
         print(f"Start Times (s): {startTimes}")
-        durations = [round(n.duration/parameters.SAMPLE_RATE,3) for n in self.noteList]
+        durations = [round(n.duration/parameters.SAMPLE_RATE,5) for n in self.noteList]
         print(f"Durations: {durations}")
         pass
         

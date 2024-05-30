@@ -11,6 +11,22 @@
 10. same, removed normalization
 11. added rescaling with max factor of 2 ---- HUGE SUCCESS ------ SCIENCE!!!
 12. same as above: FFT, no freq pen or norm, rescaling max 2, 512 window, 0.5 overlap, 1 freq/note, approx init, 0.1 mutation, 200 gen
-	- added overlap note removal after mutation
+	- added overlap note removal after mutation, remove any left-overlapping notes
+13. same as above, but changed overlap removal to spacing out left-overlapping notes
+14. back to 11, remove overlap at end
+
+Tests for TTLS:  512 window, 50% overlap, 3 freq/note, 0.1 mutation, 200 gen
+15.random init, no freq pen, rescaling, 200% duration
+16.random init, freq pen, rescaling,200% duration 
+17. random init, no freq pen, no rescaling, 200% duration
+18. random init, freq pen, no rescaling, 200% duration
+19. approx init, no freq pen, rescaling, 200% duration
+20. approx init, no freq pen, rescaling, 150% duration
+21. approx init, freq pen, rescaling, 150% duration
+
+22. approx init, no freq pen, no rescaling, 150%, 400 gen
+23. approx init, no freq pen, no rescaling, 150%, 50 gen, plot best performance
+24. approx init, no freq pen, rescaling, 150%, 50 gen, plot best performance
+25. same as 24, retain best individual across all generations
 best so far:
-FFT, ~5e3 freq pen, No Norm, no rescale, 512 window, 50% overlap, 3 freq/note, random init, 0.1 mutation, 200 gen
+FFT, no freq pen, No Norm, rescaling, 512 window, 50% overlap, 3 freq/note, approx_init, 0.1 mutation, 50 gen

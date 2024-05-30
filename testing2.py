@@ -12,7 +12,7 @@ import pickle
 import time
 
 #Test note fitting
-readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
+'''readpath = 'C:/Users/dough/OneDrive/Documents/AA222_FinalProject/TTLS.wav'
 song = utilities.process_wav(readpath)
 song = utilities.downsample(song)
 print(song.shape)
@@ -37,4 +37,27 @@ ax = plt.pcolormesh(t, np.arange(1,38), approx_amps, shading='gouraud')
 #ax = plt.pcolormesh(t, np.arange(1,38), target_amps, shading='gouraud')
 ns = np.arange(1,38)
 #plt.plot(ns,target_amps[:,156],color='blue')
+plt.show()'''
+
+#Test Precision/Recall
+objects = []
+with (open("Test_14.pkl", "rb")) as openfile:
+    objects = pickle.load(openfile)
+pop = objects[0]
+best_individual = pop[0]
+best_gen = best_individual.genome
+best_gen.process_notes()
+best_gen.print_notes()
+
+
+ttls_genome = ttls_gen = utilities.make_ttls()
+(precision,recall) = utilities.calc_precision_and_recall(ttls_genome,best_gen)
+print(f"precision: {precision}")
+print(f"recall: {recall}")
+
+
+utilities.draw_midi(ttls_genome)
+plt.title("Ground Truth")
+utilities.draw_midi(best_gen)
+plt.title("Best Genome from GA")
 plt.show()

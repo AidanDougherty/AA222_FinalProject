@@ -177,3 +177,25 @@ def fit_notes(target_note_amps): #given target note amplitudes, generate genome
 
     return Genome.Genome(fit_noteList)
 
+def calc_precision_and_recall(target_genome,test_genome):
+    precision = calc_metric(test_genome,target_genome)/len(test_genome.noteList) #percent of transcription notes present in ground truth
+    if(len(target_genome.noteList)==0):
+        recall = 0.0
+    else:
+        recall = calc_metric(target_genome,test_genome)/len(target_genome.noteList) #percent of correct notes present in transcription
+    return (precision,recall)
+
+def calc_metric(target_genome, test_genome):
+    num_match_notes = 0
+    for target_note in target_genome.noteList:
+        for test_note in test_genome.noteList:
+            if(test_note.noteName==target_note.noteName): #check freq match
+                start_diff = np.abs(target_note.startTime-test_note.startTime)
+                dur_diff = np.abs(target_note.duration-test_note.duration)
+                if(start_diff<parameters.MATCH_START_TOL and dur_diff<parameters.MATCH_DUR_TOL):
+                    num_match_notes+=1
+                    break
+        else:
+            continue
+    return num_match_notes
+

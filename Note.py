@@ -57,7 +57,7 @@ class Note:
         else:
             self.noteName = Note.notes[(i-1)%L]
 
-    def set_duration_and_startTime(self,new_dur,new_start,changingDur):
+    def set_duration_and_startTime(self,new_dur,new_start,changingDur): #DO NOT CALL EXTERNALLY
         if(new_dur<Note.MIN_DURATION):
             new_dur = Note.MIN_DURATION
         elif(new_dur>Note.MAX_DURATION):
