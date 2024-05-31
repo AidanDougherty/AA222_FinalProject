@@ -54,7 +54,7 @@ NFFT = 8*FRAME_SAMPLES #freq spacing = 1 Hz, freq resolution with hanning = 8 Hz
 FREQ_AXIS = np.linspace(0,DOWNSAMPLE_FS/2,int(NFFT/2)) #real freq axis of NFFT point FFT of downsampled frame
 FREQ_PER_NOTE = 1
 NOTE_INDICES = np.array([[np.where(FREQ_AXIS==f)[0] for f in nsmallest(FREQ_PER_NOTE, FREQ_AXIS, key=lambda x: abs(x - nf))] for nf in note_freqs]).reshape(37,FREQ_PER_NOTE).T
-#^3x37 array of 3 closest indices in FREQ_AXIS to each note
+#^3x37 array of FREQ_PER_NOTE closest indices in FREQ_AXIS to each note
 
 NORMALIZATION_OPT = False
 MAX_NORMALIZATION_FACTOR = 10
@@ -70,7 +70,7 @@ NUM_CHILDREN = 100
 NUM_PARENTS = 90
 NUM_MUTATE_BEST = NUM_CHILDREN - NUM_PARENTS #proportion of population that is created from mutating best individual
 ELITE_SIZE = 200
-NUM_GENERATIONS = 50
+NUM_GENERATIONS = 100
 TOURNAMENT_SIZE = 5
 
 #Precision/Recall parameters
@@ -80,5 +80,5 @@ MATCH_DUR_TOL = int(0.5*SAMPLE_RATE)
 
 #For runnning tests:
 USE_APPROX = True
-USE_FREQ_PEN = False
+USE_FREQ_PEN = True
 RESCALE_OPT = True

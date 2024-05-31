@@ -26,7 +26,7 @@ gen.process_notes()
 s = gen.synthesize()
 wavfile.write('best.wav',parameters.SAMPLE_RATE,s)
 
-with open('Test_25.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
+with open('Test_27.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([population, gen_fitness, gen_performance,best_individual_overall], f)
 
 plt.figure()

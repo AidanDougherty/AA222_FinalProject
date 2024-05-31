@@ -28,5 +28,20 @@ Tests for TTLS:  512 window, 50% overlap, 3 freq/note, 0.1 mutation, 200 gen
 23. approx init, no freq pen, no rescaling, 150%, 50 gen, plot best performance
 24. approx init, no freq pen, rescaling, 150%, 50 gen, plot best performance
 25. same as 24, retain best individual across all generations
+26. same as 25, 500 generations
+27. approx init, freq pen, rescaling, 150% 50 gen
+28. approx init, no freq pen, rescaling, 150% 100 gen
+29 random init, no freq pen, rescaling, 200%, 100 gen
+30 random init, freq pen, rescaling, 200%, 100 gen
+31. random init, freq pen, no rescaling, 200%, 100 gen
+
+*32. approx init, no freq pen, rescaling, 150% 100 gen, 1024 window, 0.5 overlap
+33. 1024 window w 0.75 overlap
+*34. approx init, 1k freq pen, rescaling, 150% 100 gen, 1024 window 0.5 overlap
+35. approx init, no freq pen, no rescaling, 150% 100 gen, 1024 0.5
+36. approx init, no freq pen, rescaling, 200% 100 gen, 1024 window, 0.5 overlap
+*37. random init, no freq pen, rescaling, 200% 100 gen, 1024 window 0.5 overlap
+*38. random init, 1k freq pen, rescaling, 200%, 100 gen, 1024 0.5
+
 best so far:
 FFT, no freq pen, No Norm, rescaling, 512 window, 50% overlap, 3 freq/note, approx_init, 0.1 mutation, 50 gen

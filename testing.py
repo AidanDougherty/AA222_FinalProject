@@ -118,8 +118,12 @@ target_Sxx = utilities.normalize_frames(Sxx)
 target_amps = utilities.eval_note_amplitudes(target_Sxx)
 
 print(target_amps.shape)
-ax = plt.pcolormesh(t, np.arange(1,38), target_amps, shading='gouraud')
-plt.show()
+'''fig,ax = plt.subplots()
+ax.pcolormesh(t, np.arange(1,38), target_amps, shading='gouraud')
+ax.set_ylabel("Note Frequency")
+ax.set_xlabel("Time (s)")
+ax.set_title("Ground Truth Spectrogram")
+plt.show()'''
 #target_amps = Sxx
 #ax = plt.pcolormesh(t, np.arange(1,38), amps, shading='gouraud')
 #plt.show()

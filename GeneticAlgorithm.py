@@ -62,8 +62,8 @@ def run_ga(readpath,ideal_genome): #path to 44.1kHz, 10s song
             population.append(best_individual.clone_and_mutate())
     
     population = sorted(population, key=lambda x: x.evaluate_self(target_note_amps), reverse=False)[:parameters.POP_SIZE]
-    gen_fitness = np.trim_zeros(gen_fitness)
-    gen_performance = np.trim_zeros(gen_performance)
+    gen_fitness = gen_fitness[:ngen+1]
+    gen_performance = gen_performance[:ngen+1]
     best_fitness = population[0].evaluate_self(target_note_amps)
     return (population,gen_fitness,best_fitness,gen_performance,best_individual_overall)
 
@@ -84,7 +84,7 @@ def calc_average_performance(pop,ideal_genome):
 
 def calc_best_performance(pop,ideal_genome):
     best = 0
-    
+    best_ind = None
     for x in pop:
         gen = copy.copy(x.genome)
         gen.process_notes()

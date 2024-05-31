@@ -18,7 +18,7 @@ target_Sxx = utilities.normalize_frames(Sxx)
 target_amps = utilities.eval_note_amplitudes(target_Sxx)
 
 objects = []
-with (open("Test_25.pkl", "rb")) as openfile:
+with (open("Test_28.pkl", "rb")) as openfile:
     objects = pickle.load(openfile)
 
 #Plot fitness
@@ -34,6 +34,7 @@ n = np.arange(0,len(performance))
 fig,ax = plt.subplots()
 ax.plot(n,performance)
 ax.set_title("Best Performance vs Generation")
+ax.set_ylim(0,1)
 
 population = objects[0]
 #best_individual = population[0]

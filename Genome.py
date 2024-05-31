@@ -61,7 +61,8 @@ class Genome:
         return [Genome(notelist_A), Genome(notelist_B)]
 
     def mutate(self,forced=None):
-        
+        if(not self.noteList): #do not mutate if notelist is empty
+            return
         if(forced==True or random.random()<=parameters.MUTATION_PROBABILITY): #10% chance to mutate one note or whole genome
             n = random.choice(self.noteList)
             self.noteList.remove(n)
@@ -101,7 +102,7 @@ class Genome:
                 self.noteList.append(n_copy)
             elif p==6: #remove note
                 pass #simply don't add back to notelist
-            elif p==7: #add new note - random or duplicate
+            elif p==7: #add new note - random 
                 self.noteList.append(n)
                 #if(random.random()<0.5):
                     #n1 = copy.copy(n)
